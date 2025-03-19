@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block title %}Dice Multiplier Game{% endblock %}
+
+{% block content %}
+    <h1 class="text-center mb-4">Dice Multiplier Game</h1>
+
+    <div class="alert alert-info">
+        <p>Welcome, {{ user.username }}!</p>
+        <p>Your Balance: ${{ user_profile.balance|default:"0.00" }}</p>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert {% if message.tags == 'success' %}alert-success{% else %}alert-danger{% endif %}" role="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if error %}
+        <div class="alert alert-danger" role="alert">
+            {{ error }}
+        </div>
+    {% endif %}
+
+    <h2 class="mt-4">Play a Game</h2>
+    <form method="post" action="{% url 'dice:play_game' %}" class="mb-4">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="wager" class="form-label">Wager Amount:</label>
+            <input type="number" name="wager" id="wager" step="0.01" min="0.01" max="{{ user_profile.balance|default:'0.00' }}" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="multiplier" class="form-label">Multiplier:</label>
+            <select name="multiplier" id="multiplier" onchange="updateGuessRange()" class="form-select" required>
+                <option value="2">2x (Guess 1-2)</option>
+                <option value="3">3x (Guess 1-3)</option>
+                <option value="4">4x (Guess 1-4)</option>
+                <option value="5">5x (Guess 1-5)</option>
+                <option value="10">10x (Guess 1-10)</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="guess" class="form-label">Your Guess:</label>
+            <input type="number" name="guess" id="guess" min="1" max="2" class="form-control" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Roll the Dice!</button>
+    </form>
+
+    <h2 class="mt-4">Recent Games</h2>
+    {% if games %}
+        <ul class="list-group">
+        {% for game in games %}
+            <li class="list-group-item">
+                Wager: ${{ game.wager }} | Multiplier: {{ game.multiplier }}x | Guess: {{ game.guess }} | Roll: {{ game.roll_result }} |
+                {% if game.won %}
+                    <span class="text-success">Won! Payout: ${{ game.payout }}</span>
+                {% else %}
+                    <span class="text-danger">Lost</span>
+                {% endif %}
+                ({{ game.timestamp }})
+            </li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p class="text-muted">No games played yet.</p>
+    {% endif %}
+
+    <form method="post" action="{% url 'accounts:logout' %}" class="mt-4">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-secondary">Logout</button>
+    </form>
+{% endblock %}
+
+{% block extra_js %}
+    <script>
+        function updateGuessRange() {
+            const multiplier = document.getElementById('multiplier').value;
+            const guessInput = document.getElementById('guess');
+            guessInput.max = multiplier;
+            if (guessInput.value > multiplier) {
+                guessInput.value = multiplier;
+            }
+        }
+    </script>
+{% endblock %}
