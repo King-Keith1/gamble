@@ -6,4 +6,5 @@ app_name = 'dice'
 urlpatterns = [
     path('', views.index, name='index'),  # Main game page
     path('play/', views.play_game, name='play_game'),  # Handle game submission
+    path('recharge/', views.recharge, name='recharge'),  # Recharge balance
 ]

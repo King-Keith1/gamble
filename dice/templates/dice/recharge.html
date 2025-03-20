@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}Recharge Balance{% endblock %}
+
+{% block content %}
+    <h1 class="text-center mb-4">Recharge Your Balance</h1>
+
+    <div class="alert alert-info">
+        <p>Current Balance: ${{ user.userprofile.balance|default:"0.00" }}</p>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert {% if message.tags == 'success' %}alert-success{% else %}alert-danger{% endif %}" role="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="post" class="mb-4">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary w-100">Recharge</button>
+    </form>
+
+    <p class="text-center"><a href="{% url 'dice:index' %}" class="btn btn-secondary">Back to Game</a></p>
+{% endblock %}

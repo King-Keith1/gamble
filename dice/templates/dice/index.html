@@ -8,6 +8,9 @@
     <div class="alert alert-info">
         <p>Welcome, {{ user.username }}!</p>
         <p>Your Balance: ${{ user_profile.balance|default:"0.00" }}</p>
+        {% if user_profile.balance < 0.01 %}
+            <p class="text-danger">Your balance is too low to play. <a href="{% url 'dice:recharge' %}" class="btn btn-warning btn-sm">Recharge Now</a></p>
+        {% endif %}
     </div>
 
     {% if messages %}
@@ -70,10 +73,13 @@
         <p class="text-muted">No games played yet.</p>
     {% endif %}
 
-    <form method="post" action="{% url 'accounts:logout' %}" class="mt-4">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-secondary">Logout</button>
-    </form>
+    <div class="mt-4">
+        <a href="{% url 'dice:recharge' %}" class="btn btn-warning">Recharge Balance</a>
+        <form method="post" action="{% url 'accounts:logout' %}" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-secondary">Logout</button>
+        </form>
+    </div>
 {% endblock %}
 
 {% block extra_js %}
