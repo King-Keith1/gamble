@@ -76,7 +76,7 @@
     <div class="mt-4">
         <a href="{% url 'dice:recharge' %}" class="btn btn-warning">Recharge Balance</a>
         <form method="post" action="{% url 'accounts:logout' %}" class="d-inline">
-            {% csrf_token %}
+            {% csrf_token %}  
             <button type="submit" class="btn btn-secondary">Logout</button>
         </form>
     </div>
