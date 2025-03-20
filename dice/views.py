@@ -51,7 +51,7 @@ def play_game(request):
             guess=guess,
             roll_result=roll_result,
             won=won,
-            payout=payout
+            payout=payout 
         )
         game.save()
 

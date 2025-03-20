@@ -9,9 +9,7 @@ def signup(request):
             user = form.save()
             login(request, user)
             return redirect('dice:index')
-        else:
-            # Print form errors to the console for debugging
-            print("Form errors:", form.errors)
     else:
         form = UserCreationForm()
+
     return render(request, 'registration/signup.html', {'form': form})

@@ -9,22 +9,22 @@
         <p>Password must be at least 8 characters long, not too similar to your username, and not entirely numeric.</p>
     </div>
 
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Sign Up</button>
+    </form>
+    
     {% if form.errors %}
-        <div class="alert alert-danger" role="alert">
-            <p><strong>Form Errors:</strong></p>
-            <ul>
-                {% for field in form %}
-                    {% for error in field.errors %}
-                        <li>{{ field.label }}: {{ error }}</li>
-                    {% endfor %}
+        <ul>
+            {% for field, errors in form.errors.items %}
+                {% for error in errors %}
+                    <li>{{ field }}: {{ error }}</li>
                 {% endfor %}
-                {% for error in form.non_field_errors %}
-                    <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-        </div>
+            {% endfor %}
+        </ul>
     {% endif %}
-
+    
     <form method="post" onsubmit="return validateForm()" class="mb-4">
         {% csrf_token %}
         <div class="mb-3">
