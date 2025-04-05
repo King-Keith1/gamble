@@ -3,10 +3,10 @@
 {% block title %}Recharge Balance{% endblock %}
 
 {% block content %}
-    <h1 class="text-center mb-4">Recharge Your Balance</h1>
+    <h1 class="text-center mb-4 page-title">Recharge Your Balance</h1>
 
-    <div class="alert alert-info">
-        <p>Current Balance: ${{ user.userprofile.balance|default:"0.00" }}</p>
+    <div class="balance-info">
+        <p>Current Balance: <span class="balance-highlight">${{ user.userprofile.balance|default:"0.00" }}</span></p>
     </div>
 
     {% if messages %}
@@ -17,11 +17,105 @@
         {% endfor %}
     {% endif %}
 
-    <form method="post" class="mb-4">
+    <form method="post" class="mb-4 recharge-form">
         {% csrf_token %}
-        {{ form.as_p }}
+        <div class="form-group">
+            <label for="id_amount" class="form-label">Amount to Recharge:</label>
+            {{ form.amount }}
+        </div>
         <button type="submit" class="btn btn-primary w-100">Recharge</button>
     </form>
 
     <p class="text-center"><a href="{% url 'dice:index' %}" class="btn btn-secondary">Back to Game</a></p>
+{% endblock %}
+
+{% block extra_css %}
+    <style>
+        /* Title Styling */
+        .page-title {
+            font-size: 2.5rem;
+            color: #ffd700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            }
+            to {
+                text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+            }
+        }
+
+        /* Balance Info Section */
+        .balance-info {
+            background: linear-gradient(135deg, #3a3a3a, #2a2a2a);
+            border: 2px solid #ffd700;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .balance-info::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            border-radius: 15px;
+            background: linear-gradient(45deg, #ffd700, #00ff00, #ffd700);
+            z-index: -1;
+            filter: blur(10px);
+            opacity: 0.5;
+        }
+
+        .balance-highlight {
+            font-weight: bold;
+            color: #00ff00;
+            text-shadow: 0 0 10px rgba(0, 255, 0, 0.7);
+            display: inline-block;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* Form Styling */
+        .recharge-form {
+            background: #3a3a3a;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .form-group label {
+            color: #ffffff;
+            font-weight: bold;
+        }
+
+        .form-group input {
+            background: #4a4a4a;
+            color: #ffffff;
+            border: 1px solid #ffd700;
+            border-radius: 5px;
+            padding: 8px;
+            width: 100%;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .form-group input:focus {
+            border-color: #00ff00;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+            outline: none;
+        }
+    </style>
 {% endblock %}

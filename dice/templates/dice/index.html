@@ -1,84 +1,93 @@
 {% extends 'base.html' %}
 
+{% load static %}
+
 {% block title %}Dice Multiplier Game{% endblock %}
 
 {% block content %}
-    <h1 class="text-center mb-4">Dice Multiplier Game</h1>
+    <div class="game-container">
+        <h1 class="text-center mb-4 game-title">Dice Multiplier Game</h1>
 
-    <div class="alert alert-info">
-        <p>Welcome, {{ user.username }}!</p>
-        <p>Your Balance: ${{ user_profile.balance|default:"0.00" }}</p>
-        {% if user_profile.balance < 0.01 %}
-            <p class="text-danger">Your balance is too low to play. <a href="{% url 'dice:recharge' %}" class="btn btn-warning btn-sm">Recharge Now</a></p>
+        <div class="user-info">
+            <p class="welcome-text">Welcome, <span class="username-highlight">{{ user.username }}!</span></p>
+            <p class="balance-text">Your Balance: <span class="balance-highlight">${{ user_profile.balance|default:"0.00" }}</span></p>
+            {% if user_profile.balance < 0.01 %}
+                <p class="low-balance-warning">Your balance is too low to play. <a href="{% url 'dice:recharge' %}" class="btn recharge-btn btn-sm">Recharge Now</a></p>
+            {% endif %}
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert {% if message.tags == 'success' %}alert-success{% else %}alert-danger{% endif %}" role="alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
         {% endif %}
-    </div>
 
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert {% if message.tags == 'success' %}alert-success{% else %}alert-danger{% endif %}" role="alert">
-                {{ message }}
+        {% if error %}
+            <div class="alert alert-danger" role="alert">
+                {{ error }}
             </div>
-        {% endfor %}
-    {% endif %}
+        {% endif %}
 
-    {% if error %}
-        <div class="alert alert-danger" role="alert">
-            {{ error }}
-        </div>
-    {% endif %}
+        <h2 class="mt-4 section-title">Play a Game</h2>
+        <form method="post" action="{% url 'dice:play_game' %}" class="mb-4 game-form">
+            {% csrf_token %}
+            <div class="mb-3 form-group">
+                <label for="wager" class="form-label">Wager Amount:</label>
+                <input type="number" name="wager" id="wager" step="0.01" min="0.01" max="{{ user_profile.balance|default:'0.00' }}" class="form-control" required>
+            </div>
 
-    <h2 class="mt-4">Play a Game</h2>
-    <form method="post" action="{% url 'dice:play_game' %}" class="mb-4">
-        {% csrf_token %}
-        <div class="mb-3">
-            <label for="wager" class="form-label">Wager Amount:</label>
-            <input type="number" name="wager" id="wager" step="0.01" min="0.01" max="{{ user_profile.balance|default:'0.00' }}" class="form-control" required>
-        </div>
+            <div class="mb-3 form-group">
+                <label for="multiplier" class="form-label">Multiplier:</label>
+                <select name="multiplier" id="multiplier" onchange="updateGuessRange()" class="form-select" required>
+                    <option value="2">2x (Guess 1-2)</option>
+                    <option value="3">3x (Guess 1-3)</option>
+                    <option value="4">4x (Guess 1-4)</option>
+                    <option value="5">5x (Guess 1-5)</option>
+                    <option value="8">8x (Guess 1-8)</option>
+                </select>
+            </div>
 
-        <div class="mb-3">
-            <label for="multiplier" class="form-label">Multiplier:</label>
-            <select name="multiplier" id="multiplier" onchange="updateGuessRange()" class="form-select" required>
-                <option value="2">2x (Guess 1-2)</option>
-                <option value="3">3x (Guess 1-3)</option>
-                <option value="4">4x (Guess 1-4)</option>
-                <option value="5">5x (Guess 1-5)</option>
-                <option value="10">10x (Guess 1-10)</option>
-            </select>
-        </div>
+            <div class="mb-3 form-group">
+                <label for="guess" class="form-label">Your Guess:</label>
+                <input type="number" name="guess" id="guess" min="1" max="2" class="form-control" required>
+            </div>
 
-        <div class="mb-3">
-            <label for="guess" class="form-label">Your Guess:</label>
-            <input type="number" name="guess" id="guess" min="1" max="2" class="form-control" required>
-        </div>
-
-        <button type="submit" class="btn btn-primary">Roll the Dice!</button>
-    </form>
-
-    <h2 class="mt-4">Recent Games</h2>
-    {% if games %}
-        <ul class="list-group">
-        {% for game in games %}
-            <li class="list-group-item">
-                Wager: ${{ game.wager }} | Multiplier: {{ game.multiplier }}x | Guess: {{ game.guess }} | Roll: {{ game.roll_result }} |
-                {% if game.won %}
-                    <span class="text-success">Won! Payout: ${{ game.payout }}</span>
-                {% else %}
-                    <span class="text-danger">Lost</span>
-                {% endif %}
-                ({{ game.timestamp }})
-            </li>
-        {% endfor %}
-        </ul>
-    {% else %}
-        <p class="text-muted">No games played yet.</p>
-    {% endif %}
-
-    <div class="mt-4">
-        <a href="{% url 'dice:recharge' %}" class="btn btn-warning">Recharge Balance</a>
-        <form method="post" action="{% url 'accounts:logout' %}" class="d-inline">
-            {% csrf_token %}  
-            <button type="submit" class="btn btn-secondary">Logout</button>
+            <button type="submit" class="btn btn-primary roll-btn">Roll the Dice!</button>
         </form>
+
+        <h2 class="mt-4 section-title">Recent Games</h2>
+        {% if games %}
+            <ul class="list-group game-history">
+            {% for game in games %}
+                <li class="list-group-item game-entry {% if game.won %}game-won{% else %}game-lost{% endif %}">
+                    <div>
+                        Wager: <span class="highlight">${{ game.wager }}</span> | 
+                        Multiplier: <span class="highlight">{{ game.multiplier }}x</span> | 
+                        Guess: <span class="highlight">{{ game.guess }}</span> | 
+                        Roll: <span class="highlight">{{ game.roll_result }}</span> |
+                        {% if game.won %}
+                            <span class="text-success outcome">Won! Payout: <span class="highlight">${{ game.payout }}</span></span>
+                        {% else %}
+                            <span class="text-danger outcome">Lost</span>
+                        {% endif %}
+                        <span class="timestamp">({{ game.timestamp }})</span>
+                    </div>
+                </li>
+            {% endfor %}
+            </ul>
+        {% else %}
+            <p class="text-muted no-games">No games played yet.</p>
+        {% endif %}
+
+        <div class="mt-4 action-buttons">
+            <a href="{% url 'dice:recharge' %}" class="btn btn-warning recharge-btn">Recharge Balance</a>
+            <form method="post" action="{% url 'accounts:logout' %}" class="d-inline">
+                {% csrf_token %}  
+                <button type="submit" class="btn btn-secondary logout-btn">Logout</button>
+            </form>
+        </div>
     </div>
 {% endblock %}
 
@@ -93,4 +102,242 @@
             }
         }
     </script>
+{% endblock %}
+
+{% block extra_css %}
+    <style>
+        /* General Page Styling */
+        .game-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #2a2a2a;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Title Styling */
+        .game-title {
+            font-size: 2.5rem;
+            color: #ffd700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            }
+            to {
+                text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+            }
+        }
+
+        /* User Info Section */
+        .user-info {
+            background: linear-gradient(135deg, #3a3a3a, #2a2a2a);
+            border: 2px solid #ffd700;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .user-info::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            border-radius: 15px;
+            background: linear-gradient(45deg, #ffd700, #00ff00, #ffd700);
+            z-index: -1;
+            filter: blur(10px);
+            opacity: 0.5;
+        }
+
+        .welcome-text {
+            font-size: 1.5rem;
+            color: #ffffff;
+            margin-bottom: 10px;
+        }
+
+        .username-highlight {
+            font-weight: bold;
+            color: #ffd700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.7);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        .balance-text {
+            font-size: 1.3rem;
+            color: #ffffff;
+        }
+
+        .balance-highlight {
+            font-weight: bold;
+            color: #00ff00;
+            text-shadow: 0 0 10px rgba(0, 255, 0, 0.7);
+            display: inline-block;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        .low-balance-warning {
+            color: #ff0000;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* Form Styling */
+        .game-form {
+            background: #3a3a3a;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            color: #ffd700;
+            border-bottom: 2px solid #ffd700;
+            padding-bottom: 5px;
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            color: #ffffff;
+            font-weight: bold;
+        }
+
+        .form-control, .form-select {
+            background: #4a4a4a;
+            color: #ffffff;
+            border: 1px solid #ffd700;
+            border-radius: 5px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #00ff00;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+            outline: none;
+        }
+
+        /* Roll Button */
+        .roll-btn {
+            background: #ff4500;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 5px;
+            transition: transform 0.1s ease, background 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 5px 15px rgba(255, 69, 0, 0.5);
+        }
+
+        .roll-btn:hover {
+            background: #ff6347;
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(255, 99, 71, 0.7);
+        }
+
+        .roll-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Recent Games Section */
+        .game-history {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ffd700;
+            border-radius: 10px;
+            padding: 10px;
+            background: #3a3a3a;
+        }
+
+        .game-entry {
+            background: #4a4a4a;
+            border: none;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            padding: 15px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .game-entry:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .game-won {
+            border-left: 5px solid #00ff00;
+        }
+
+        .game-lost {
+            border-left: 5px solid #ff0000;
+        }
+
+        .highlight {
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        .outcome {
+            font-weight: bold;
+        }
+
+        .timestamp {
+            color: #aaaaaa;
+            font-size: 0.9rem;
+            margin-left: 10px;
+        }
+
+        .no-games {
+            text-align: center;
+            color: #aaaaaa;
+            font-style: italic;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            text-align: center;
+        }
+
+        .recharge-btn {
+            background: #ffd700;
+            color: #1a1a1a;
+            font-weight: bold;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: background 0.3s ease, transform 0.1s ease;
+        }
+
+        .recharge-btn:hover {
+            background: #ffeb3b;
+            transform: scale(1.05);
+        }
+
+        .logout-btn {
+            background: #666666;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: background 0.3s ease, transform 0.1s ease;
+        }
+
+        .logout-btn:hover {
+            background: #888888;
+            transform: scale(1.05);
+        }
+    </style>
 {% endblock %}
