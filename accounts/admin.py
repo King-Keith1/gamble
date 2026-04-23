@@ -1,4 +1,4 @@
-Gamble/accounts/admin.py
+#Gamble/accounts/admin.py
 from django.contrib import admin
 from .models import UserProfile
 
