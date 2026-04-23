@@ -18,13 +18,23 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-
+from django.views.generic import RedirectView
+ 
 urlpatterns = [
     path('admin/', admin.site.urls),
+ 
+    # Accounts: login, logout, signup
     path('accounts/', include('accounts.urls')),
+ 
+    # Dice game
     path('dice/', include('dice.urls')),
-    path('', include('dice.urls')), 
+ 
+    # Fixed: previously dice.urls was included twice (at '' AND 'dice/').
+    # That causes an app_name namespace collision and makes {% url 'dice:index' %}
+    # resolve ambiguously. Replaced with a simple redirect so '/' goes to the game.
+    path('', RedirectView.as_view(url='/dice/', permanent=False)),
 ]
-
+ 
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+ 
