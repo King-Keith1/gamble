@@ -1,11 +1,58 @@
+Gamble/accounts/templates/registration/logged_out.html
 {% extends 'base.html' %}
 
-{% block title %}Logged Out{% endblock %}
+{% block title %}Sign Up{% endblock %}
 
 {% block content %}
-    <h1 class="text-center mb-4">Logged Out</h1>
-    <div class="alert alert-info text-center">
-        <p>You have been logged out.</p>
-        <p><a href="{% url 'accounts:login' %}" class="btn btn-primary">Log in again</a></p>
+    <h1>Join the Game</h1>
+    <p class="page-subtitle">Password: 8+ chars, not purely numeric</p>
+
+    {% if form.errors %}
+        <div class="alert alert-danger mb-3" role="alert">
+            {% for field, errors in form.errors.items %}
+                {% for error in errors %}
+                    <div>{% if field != '__all__' %}{{ field }}: {% endif %}{{ error }}</div>
+                {% endfor %}
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="alert alert-danger mb-3" id="pw-mismatch-error" style="display: none;" role="alert">
+        Passwords do not match.
     </div>
+
+    <form method="post" onsubmit="return validateForm()">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="id_username" class="form-label">Username</label>
+            <input type="text" name="username" id="id_username" class="form-control" placeholder="choose_a_username" required>
+        </div>
+        <div class="mb-3">
+            <label for="id_password1" class="form-label">Password</label>
+            <input type="password" name="password1" id="id_password1" class="form-control" placeholder="••••••••" required>
+        </div>
+        <div class="mb-3">
+            <label for="id_password2" class="form-label">Confirm Password</label>
+            <input type="password" name="password2" id="id_password2" class="form-control" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Sign Up</button>
+    </form>
+
+    <p class="link-row">Already have an account? <a href="{% url 'accounts:login' %}">Log in</a></p>
+{% endblock %}
+
+{% block extra_js %}
+    <script>
+        function validateForm() {
+            const pw1 = document.getElementById('id_password1').value;
+            const pw2 = document.getElementById('id_password2').value;
+            const errDiv = document.getElementById('pw-mismatch-error');
+            if (pw1 !== pw2) {
+                errDiv.style.display = 'block';
+                return false;
+            }
+            errDiv.style.display = 'none';
+            return true;
+        }
+    </script>
 {% endblock %}
