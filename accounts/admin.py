@@ -1,5 +1,9 @@
-#Gamble/accounts/admin.py
+# Gamble/accounts/admin.py
 from django.contrib import admin
 from .models import UserProfile
 
-admin.site.register(UserProfile)
+
+@admin.register(UserProfile)
+class UserProfileAdmin(admin.ModelAdmin):
+    list_display = ('user', 'balance')
+    search_fields = ('user__username',)
