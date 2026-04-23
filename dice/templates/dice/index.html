@@ -1,344 +1,237 @@
 #Gamble/dice/templates/dice/index.html
 {% extends 'base.html' %}
-
 {% load static %}
 
 {% block title %}Dice Multiplier Game{% endblock %}
 
+{% block extra_css %}
+<style>
+    .container { max-width: 680px; }
+
+    .game-title {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 48px;
+        letter-spacing: 4px;
+        color: #fff;
+        line-height: 1;
+        margin-bottom: 4px;
+    }
+    .game-title span { color: var(--accent); }
+
+    /* User info card */
+    .user-card {
+        background: #1a1a1a;
+        border: 1px solid #2a2a2a;
+        border-radius: 12px;
+        padding: 20px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 28px;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+    .user-card .welcome { font-size: 14px; color: #888; }
+    .user-card .username { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; color: #fff; }
+    .user-card .balance-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: #888; margin-bottom: 2px; }
+    .user-card .balance-amount { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 1px; color: #4ade80; }
+    .low-balance-warning { width: 100%; font-size: 13px; color: var(--danger); display: flex; align-items: center; gap: 10px; }
+
+    /* Section heading */
+    .section-title {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 24px;
+        letter-spacing: 2px;
+        color: #fff;
+        margin-bottom: 16px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #2a2a2a;
+    }
+
+    /* Game form */
+    .game-form {
+        background: #1a1a1a;
+        border: 1px solid #2a2a2a;
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 32px;
+    }
+
+    .form-select {
+        background: #222 !important;
+        border: 1px solid #2a2a2a !important;
+        border-radius: 8px !important;
+        padding: 12px 14px !important;
+        color: #fff !important;
+        font-size: 14px !important;
+        font-family: 'DM Sans', sans-serif !important;
+        transition: border-color 0.15s !important;
+        width: 100%;
+        appearance: none;
+        -webkit-appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E") !important;
+        background-repeat: no-repeat !important;
+        background-position: right 14px center !important;
+        cursor: pointer;
+    }
+    .form-select:focus { border-color: var(--accent) !important; outline: none !important; box-shadow: 0 0 0 3px rgba(255,69,0,0.12) !important; }
+    .form-select option { background: #222; color: #fff; }
+
+    /* Game history */
+    .game-history { display: flex; flex-direction: column; gap: 8px; max-height: 400px; overflow-y: auto; padding-right: 4px; margin-bottom: 28px; }
+    .game-history::-webkit-scrollbar { width: 4px; }
+    .game-history::-webkit-scrollbar-track { background: #1a1a1a; }
+    .game-history::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+
+    .game-entry {
+        background: #1a1a1a;
+        border: 1px solid #2a2a2a;
+        border-left: 3px solid #2a2a2a;
+        border-radius: 8px;
+        padding: 12px 16px;
+        font-size: 13px;
+        color: #888;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .game-entry.game-won { border-left-color: #4ade80; }
+    .game-entry.game-lost { border-left-color: var(--danger); }
+    .game-entry .entry-stats { display: flex; gap: 16px; flex-wrap: wrap; }
+    .stat-item { display: flex; flex-direction: column; gap: 1px; }
+    .stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #555; }
+    .stat-value { font-size: 13px; font-weight: 500; color: #ccc; }
+
+    .outcome-badge { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 4px; letter-spacing: 0.5px; text-transform: uppercase; }
+    .outcome-won { background: rgba(74,222,128,0.12); color: #4ade80; }
+    .outcome-lost { background: rgba(248,113,113,0.12); color: var(--danger); }
+    .timestamp { font-size: 11px; color: #444; }
+    .no-games { text-align: center; color: #555; font-style: italic; padding: 24px 0; font-size: 14px; }
+
+    /* Action row */
+    .action-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn-recharge, .btn-logout {
+        background: transparent;
+        border: 1px solid #2a2a2a;
+        border-radius: 8px;
+        padding: 12px 24px;
+        color: #888;
+        font-size: 14px;
+        font-family: 'DM Sans', sans-serif;
+        cursor: pointer;
+        transition: border-color 0.15s, color 0.15s;
+        text-decoration: none;
+    }
+    .btn-recharge:hover { border-color: #444; color: #ccc; }
+    .btn-logout:hover { border-color: var(--danger-border); color: var(--danger); }
+</style>
+{% endblock %}
+
 {% block content %}
-    <div class="game-container">
-        <h1 class="text-center mb-4 game-title">Dice Multiplier Game</h1>
+    <h1 class="game-title">Dice<span>X</span></h1>
+    <p style="font-size:13px; color:#555; margin-bottom:24px; letter-spacing:1px; text-transform:uppercase;">Multiplier Game</p>
 
-        <div class="user-info">
-            <p class="welcome-text">Welcome, <span class="username-highlight">{{ user.username }}!</span></p>
-            <p class="balance-text">Your Balance: <span class="balance-highlight">${{ user_profile.balance|default:"0.00" }}</span></p>
-            {% if user_profile.balance < 0.01 %}
-                <p class="low-balance-warning">Your balance is too low to play. <a href="{% url 'dice:recharge' %}" class="btn recharge-btn btn-sm">Recharge Now</a></p>
-            {% endif %}
+    <div class="user-card">
+        <div>
+            <div class="welcome">Welcome back,</div>
+            <div class="username">{{ user.username }}</div>
         </div>
+        <div style="text-align:right;">
+            <div class="balance-label">Balance</div>
+            <div class="balance-amount">${{ user_profile.balance|default:"0.00" }}</div>
+        </div>
+        {% if user_profile.balance < 0.01 %}
+            <div class="low-balance-warning">
+                Balance too low to play.
+                <a href="{% url 'dice:recharge' %}" class="btn btn-primary" style="padding:8px 16px; font-size:14px;">Recharge</a>
+            </div>
+        {% endif %}
+    </div>
 
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert {% if message.tags == 'success' %}alert-success{% else %}alert-danger{% endif %}" role="alert">
-                    {{ message }}
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert {% if message.tags == 'success' %}alert-success{% else %}alert-danger{% endif %} mb-3" role="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+    {% if error %}
+        <div class="alert alert-danger mb-3" role="alert">{{ error }}</div>
+    {% endif %}
+
+    <div class="section-title">Place Your Bet</div>
+    <form method="post" action="{% url 'dice:play_game' %}" class="game-form">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="wager" class="form-label">Wager Amount</label>
+            <input type="number" name="wager" id="wager" step="0.01" min="0.01"
+                   max="{{ user_profile.balance|default:'0.00' }}"
+                   class="form-control" placeholder="0.00" required>
+        </div>
+        <div class="mb-3">
+            <label for="multiplier" class="form-label">Multiplier</label>
+            <select name="multiplier" id="multiplier" onchange="updateGuessRange()" class="form-select" required>
+                <option value="2">2× — Guess 1 to 2</option>
+                <option value="3">3× — Guess 1 to 3</option>
+                <option value="4">4× — Guess 1 to 4</option>
+                <option value="5">5× — Guess 1 to 5</option>
+                <option value="10">10× — Guess 1 to 10</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="guess" class="form-label">Your Guess</label>
+            <input type="number" name="guess" id="guess" min="1" max="2"
+                   class="form-control" placeholder="1" required>
+        </div>
+        <button type="submit" class="btn btn-primary w-100" style="font-size:22px;">Roll the Dice</button>
+    </form>
+
+    <div class="section-title">Recent Games</div>
+    {% if games %}
+        <div class="game-history">
+            {% for game in games %}
+                <div class="game-entry {% if game.won %}game-won{% else %}game-lost{% endif %}">
+                    <div class="entry-stats">
+                        <div class="stat-item"><span class="stat-label">Wager</span><span class="stat-value">${{ game.wager }}</span></div>
+                        <div class="stat-item"><span class="stat-label">Multiplier</span><span class="stat-value">{{ game.multiplier }}×</span></div>
+                        <div class="stat-item"><span class="stat-label">Guess</span><span class="stat-value">{{ game.guess }}</span></div>
+                        <div class="stat-item"><span class="stat-label">Roll</span><span class="stat-value">{{ game.roll_result }}</span></div>
+                        {% if game.won %}
+                            <div class="stat-item"><span class="stat-label">Payout</span><span class="stat-value" style="color:#4ade80;">${{ game.payout }}</span></div>
+                        {% endif %}
+                    </div>
+                    <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
+                        {% if game.won %}<span class="outcome-badge outcome-won">Won</span>
+                        {% else %}<span class="outcome-badge outcome-lost">Lost</span>{% endif %}
+                        <span class="timestamp">{{ game.timestamp }}</span>
+                    </div>
                 </div>
             {% endfor %}
-        {% endif %}
-
-        {% if error %}
-            <div class="alert alert-danger" role="alert">
-                {{ error }}
-            </div>
-        {% endif %}
-
-        <h2 class="mt-4 section-title">Play a Game</h2>
-        <form method="post" action="{% url 'dice:play_game' %}" class="mb-4 game-form">
-            {% csrf_token %}
-            <div class="mb-3 form-group">
-                <label for="wager" class="form-label">Wager Amount:</label>
-                <input type="number" name="wager" id="wager" step="0.01" min="0.01" max="{{ user_profile.balance|default:'0.00' }}" class="form-control" required>
-            </div>
-
-            <div class="mb-3 form-group">
-                <label for="multiplier" class="form-label">Multiplier:</label>
-                <select name="multiplier" id="multiplier" onchange="updateGuessRange()" class="form-select" required>
-                    <option value="2">2x (Guess 1-2)</option>
-                    <option value="3">3x (Guess 1-3)</option>
-                    <option value="4">4x (Guess 1-4)</option>
-                    <option value="5">5x (Guess 1-5)</option>
-                    <option value="10">10x (Guess 1-10)</option>
-                </select>
-            </div>
-
-            <div class="mb-3 form-group">
-                <label for="guess" class="form-label">Your Guess:</label>
-                <input type="number" name="guess" id="guess" min="1" max="2" class="form-control" required>
-            </div>
-
-            <button type="submit" class="btn btn-primary roll-btn">Roll the Dice!</button>
-        </form>
-
-        <h2 class="mt-4 section-title">Recent Games</h2>
-        {% if games %}
-            <ul class="list-group game-history">
-            {% for game in games %}
-                <li class="list-group-item game-entry {% if game.won %}game-won{% else %}game-lost{% endif %}">
-                    <div>
-                        Wager: <span class="highlight">${{ game.wager }}</span> | 
-                        Multiplier: <span class="highlight">{{ game.multiplier }}x</span> | 
-                        Guess: <span class="highlight">{{ game.guess }}</span> | 
-                        Roll: <span class="highlight">{{ game.roll_result }}</span> |
-                        {% if game.won %}
-                            <span class="text-success outcome">Won! Payout: <span class="highlight">${{ game.payout }}</span></span>
-                        {% else %}
-                            <span class="text-danger outcome">Lost</span>
-                        {% endif %}
-                        <span class="timestamp">({{ game.timestamp }})</span>
-                    </div>
-                </li>
-            {% endfor %}
-            </ul>
-        {% else %}
-            <p class="text-muted no-games">No games played yet.</p>
-        {% endif %}
-
-        <div class="mt-4 action-buttons">
-            <a href="{% url 'dice:recharge' %}" class="btn btn-warning recharge-btn">Recharge Balance</a>
-            <form method="post" action="{% url 'accounts:logout' %}" class="d-inline">
-                {% csrf_token %}  
-                <button type="submit" class="btn btn-secondary logout-btn">Logout</button>
-            </form>
         </div>
+    {% else %}
+        <p class="no-games">No games played yet. Place your first bet above.</p>
+    {% endif %}
+
+    <div class="action-row">
+        <a href="{% url 'dice:recharge' %}" class="btn-recharge">Recharge Balance</a>
+        <form method="post" action="{% url 'accounts:logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn-logout">Logout</button>
+        </form>
     </div>
 {% endblock %}
 
 {% block extra_js %}
-    <script>
-        function updateGuessRange() {
-            const multiplier = document.getElementById('multiplier').value;
-            const guessInput = document.getElementById('guess');
-            guessInput.max = multiplier;
-            if (guessInput.value > multiplier) {
-                guessInput.value = multiplier;
-            }
+<script>
+    function updateGuessRange() {
+        const multiplier = parseInt(document.getElementById('multiplier').value);
+        const guessInput = document.getElementById('guess');
+        guessInput.max = multiplier;
+        if (parseInt(guessInput.value) > multiplier) {
+            guessInput.value = multiplier;
         }
-    </script>
-{% endblock %}
-
-{% block extra_css %}
-    <style>
-        /* General Page Styling */
-        .game-container {
-            max-width: 800px;
-            margin: 40px auto;
-            padding: 20px;
-            background: #2a2a2a;
-            border-radius: 15px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
-        }
-
-        /* Title Styling */
-        .game-title {
-            font-size: 2.5rem;
-            color: #ffd700;
-            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-            animation: glow 2s ease-in-out infinite alternate;
-        }
-
-        @keyframes glow {
-            from {
-                text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-            }
-            to {
-                text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
-            }
-        }
-
-        /* User Info Section */
-        .user-info {
-            background: linear-gradient(135deg, #3a3a3a, #2a2a2a);
-            border: 2px solid #ffd700;
-            border-radius: 15px;
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .user-info::before {
-            content: '';
-            position: absolute;
-            top: -2px;
-            left: -2px;
-            right: -2px;
-            bottom: -2px;
-            border-radius: 15px;
-            background: linear-gradient(45deg, #ffd700, #00ff00, #ffd700);
-            z-index: -1;
-            filter: blur(10px);
-            opacity: 0.5;
-        }
-
-        .welcome-text {
-            font-size: 1.5rem;
-            color: #ffffff;
-            margin-bottom: 10px;
-        }
-
-        .username-highlight {
-            font-weight: bold;
-            color: #ffd700;
-            text-shadow: 0 0 10px rgba(255, 215, 0, 0.7);
-            animation: glow 2s ease-in-out infinite alternate;
-        }
-
-        .balance-text {
-            font-size: 1.3rem;
-            color: #ffffff;
-        }
-
-        .balance-highlight {
-            font-weight: bold;
-            color: #00ff00;
-            text-shadow: 0 0 10px rgba(0, 255, 0, 0.7);
-            display: inline-block;
-            animation: pulse 1.5s ease-in-out infinite;
-        }
-
-        .low-balance-warning {
-            color: #ff0000;
-            font-weight: bold;
-            margin-top: 10px;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-
-        /* Form Styling */
-        .game-form {
-            background: #3a3a3a;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
-        }
-
-        .section-title {
-            font-size: 1.8rem;
-            color: #ffd700;
-            border-bottom: 2px solid #ffd700;
-            padding-bottom: 5px;
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            color: #ffffff;
-            font-weight: bold;
-        }
-
-        .form-control, .form-select {
-            background: #4a4a4a;
-            color: #ffffff;
-            border: 1px solid #ffd700;
-            border-radius: 5px;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .form-control:focus, .form-select:focus {
-            border-color: #00ff00;
-            box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
-            outline: none;
-        }
-
-        /* Roll Button */
-        .roll-btn {
-            background: #ff4500;
-            border: none;
-            padding: 10px 20px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            border-radius: 5px;
-            transition: transform 0.1s ease, background 0.3s ease, box-shadow 0.3s ease;
-            box-shadow: 0 5px 15px rgba(255, 69, 0, 0.5);
-        }
-
-        .roll-btn:hover {
-            background: #ff6347;
-            transform: scale(1.05);
-            box-shadow: 0 5px 20px rgba(255, 99, 71, 0.7);
-        }
-
-        .roll-btn:active {
-            transform: scale(0.95);
-        }
-
-        /* Recent Games Section */
-        .game-history {
-            max-height: 400px;
-            overflow-y: auto;
-            border: 1px solid #ffd700;
-            border-radius: 10px;
-            padding: 10px;
-            background: #3a3a3a;
-        }
-
-        .game-entry {
-            background: #4a4a4a;
-            border: none;
-            margin-bottom: 10px;
-            border-radius: 5px;
-            padding: 15px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .game-entry:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
-        }
-
-        .game-won {
-            border-left: 5px solid #00ff00;
-        }
-
-        .game-lost {
-            border-left: 5px solid #ff0000;
-        }
-
-        .highlight {
-            color: #ffd700;
-            font-weight: bold;
-        }
-
-        .outcome {
-            font-weight: bold;
-        }
-
-        .timestamp {
-            color: #aaaaaa;
-            font-size: 0.9rem;
-            margin-left: 10px;
-        }
-
-        .no-games {
-            text-align: center;
-            color: #aaaaaa;
-            font-style: italic;
-        }
-
-        /* Action Buttons */
-        .action-buttons {
-            text-align: center;
-        }
-
-        .recharge-btn {
-            background: #ffd700;
-            color: #1a1a1a;
-            font-weight: bold;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            transition: background 0.3s ease, transform 0.1s ease;
-        }
-
-        .recharge-btn:hover {
-            background: #ffeb3b;
-            transform: scale(1.05);
-        }
-
-        .logout-btn {
-            background: #666666;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            transition: background 0.3s ease, transform 0.1s ease;
-        }
-
-        .logout-btn:hover {
-            background: #888888;
-            transform: scale(1.05);
-        }
-    </style>
+    }
+</script>
 {% endblock %}

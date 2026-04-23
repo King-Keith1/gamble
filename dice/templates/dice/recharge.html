@@ -3,120 +3,103 @@
 
 {% block title %}Recharge Balance{% endblock %}
 
-{% block content %}
-    <h1 class="text-center mb-4 page-title">Recharge Your Balance</h1>
+{% block extra_css %}
+<style>
+    .page-title {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 42px;
+        letter-spacing: 3px;
+        color: #fff;
+        line-height: 1;
+        margin-bottom: 4px;
+    }
 
-    <div class="balance-info">
-        <p>Current Balance: <span class="balance-highlight">${{ user.userprofile.balance|default:"0.00" }}</span></p>
+    .balance-card {
+        background: #1a1a1a;
+        border: 1px solid #2a2a2a;
+        border-radius: 12px;
+        padding: 20px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 28px;
+    }
+
+    .balance-card .balance-label {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: #888;
+        margin-bottom: 4px;
+    }
+
+    .balance-card .balance-amount {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 32px;
+        letter-spacing: 1px;
+        color: #4ade80;
+    }
+
+    .recharge-form {
+        background: #1a1a1a;
+        border: 1px solid #2a2a2a;
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 16px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <h1 class="page-title">Recharge</h1>
+    <p style="font-size:13px; color:#555; margin-bottom:24px; letter-spacing:1px; text-transform:uppercase;">Top up your balance</p>
+
+    <div class="balance-card">
+        <div>
+            <div class="balance-label">Current Balance</div>
+            <!-- Fixed: was user.userprofile.balance — related_name is now 'profile' -->
+            <div class="balance-amount">${{ user.profile.balance|default:"0.00" }}</div>
+        </div>
     </div>
 
     {% if messages %}
         {% for message in messages %}
-            <div class="alert {% if message.tags == 'success' %}alert-success{% else %}alert-danger{% endif %}" role="alert">
+            <div class="alert {% if message.tags == 'success' %}alert-success{% else %}alert-danger{% endif %} mb-3" role="alert">
                 {{ message }}
             </div>
         {% endfor %}
     {% endif %}
 
-    <form method="post" class="mb-4 recharge-form">
-        {% csrf_token %}
-        <div class="form-group">
-            <label for="id_amount" class="form-label">Amount to Recharge:</label>
-            {{ form.amount }}
-        </div>
-        <button type="submit" class="btn btn-primary w-100">Recharge</button>
-    </form>
+    <div class="recharge-form">
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <!-- Fixed: was {{ form.amount }} which renders an unstyled widget.
+                     Rendered manually so Bootstrap classes and the label's `for`
+                     attribute wire up correctly. -->
+                <label for="id_amount" class="form-label">Amount to Recharge</label>
+                <input
+                    type="number"
+                    name="amount"
+                    id="id_amount"
+                    step="0.01"
+                    min="0.01"
+                    class="form-control"
+                    placeholder="0.00"
+                    value="{{ form.amount.value|default:'' }}"
+                    required
+                >
+                {% if form.amount.errors %}
+                    {% for error in form.amount.errors %}
+                        <div class="alert alert-danger mt-2" style="padding:8px 12px; font-size:13px;">{{ error }}</div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Recharge</button>
+        </form>
+    </div>
 
-    <p class="text-center"><a href="{% url 'dice:index' %}" class="btn btn-secondary">Back to Game</a></p>
-{% endblock %}
-
-{% block extra_css %}
-    <style>
-        /* Title Styling */
-        .page-title {
-            font-size: 2.5rem;
-            color: #ffd700;
-            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-            animation: glow 2s ease-in-out infinite alternate;
-        }
-
-        @keyframes glow {
-            from {
-                text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-            }
-            to {
-                text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
-            }
-        }
-
-        /* Balance Info Section */
-        .balance-info {
-            background: linear-gradient(135deg, #3a3a3a, #2a2a2a);
-            border: 2px solid #ffd700;
-            border-radius: 15px;
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
-            position: relative;
-            overflow: hidden;
-            margin-bottom: 20px;
-        }
-
-        .balance-info::before {
-            content: '';
-            position: absolute;
-            top: -2px;
-            left: -2px;
-            right: -2px;
-            bottom: -2px;
-            border-radius: 15px;
-            background: linear-gradient(45deg, #ffd700, #00ff00, #ffd700);
-            z-index: -1;
-            filter: blur(10px);
-            opacity: 0.5;
-        }
-
-        .balance-highlight {
-            font-weight: bold;
-            color: #00ff00;
-            text-shadow: 0 0 10px rgba(0, 255, 0, 0.7);
-            display: inline-block;
-            animation: pulse 1.5s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-
-        /* Form Styling */
-        .recharge-form {
-            background: #3a3a3a;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
-        }
-
-        .form-group label {
-            color: #ffffff;
-            font-weight: bold;
-        }
-
-        .form-group input {
-            background: #4a4a4a;
-            color: #ffffff;
-            border: 1px solid #ffd700;
-            border-radius: 5px;
-            padding: 8px;
-            width: 100%;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .form-group input:focus {
-            border-color: #00ff00;
-            box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
-            outline: none;
-        }
-    </style>
+    <p class="text-center" style="margin-top:16px;">
+        <a href="{% url 'dice:index' %}" class="btn btn-secondary">Back to Game</a>
+    </p>
 {% endblock %}
